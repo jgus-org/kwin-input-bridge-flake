@@ -4,12 +4,29 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      treefmt-nix,
+    }:
+    flake-utils.lib.eachSystem [ "x86_64-linux" ] (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
+
+        treefmtEval = treefmt-nix.lib.evalModule pkgs {
+          projectRootFile = "flake.nix";
+          programs.nixfmt.enable = true;
+          programs.clang-format.enable = true;
+        };
 
         kwin-input-bridge = pkgs.stdenv.mkDerivation {
           pname = "kwin-input-bridge";
@@ -17,7 +34,10 @@
           src = ./.;
 
           nativeBuildInputs = [ pkgs.pkg-config ];
-          buildInputs = [ pkgs.systemd pkgs.libei ];
+          buildInputs = [
+            pkgs.systemd
+            pkgs.libei
+          ];
           checkInputs = [ pkgs.gtest ];
 
           buildPhase = ''
@@ -55,5 +75,9 @@
           inherit kwin-input-bridge;
           default = kwin-input-bridge;
         };
-      });
+
+        formatter = treefmtEval.config.build.wrapper;
+        checks.formatting = treefmtEval.config.build.check self;
+      }
+    );
 }
