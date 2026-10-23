@@ -45,11 +45,11 @@ Connects, presses the codes in order, releases them in reverse, disconnects. Exi
 
 The forwarder scans `/dev/input/event*` and adopts the newest device whose evdev name is exactly one of:
 
-| Device name | Forwarded as |
-| --- | --- |
-| `Keyboard passthrough` | keyboard keys |
-| `Mouse passthrough` | relative pointer: motion, buttons, scroll |
-| `Mouse passthrough (absolute)` | absolute pointer position |
+| Device name                    | Forwarded as                              |
+| ------------------------------ | ----------------------------------------- |
+| `Keyboard passthrough`         | keyboard keys                             |
+| `Mouse passthrough`            | relative pointer: motion, buttons, scroll |
+| `Mouse passthrough (absolute)` | absolute pointer position                 |
 
 Those are the names Sunshine's virtual devices publish. Nothing is configurable: a device whose name differs is not forwarded, and a device whose name matches is forwarded no matter which program created it. Devices that cannot be opened are skipped without a message. The scan repeats every 2 seconds, so the devices Sunshine recreates for a new client are picked up without a restart, and a device from an older connection is dropped as soon as a newer one of the same role appears.
 

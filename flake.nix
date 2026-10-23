@@ -2,47 +2,30 @@
   description = "Forward Sunshine's uinput devices into a headless kwin_wayland --virtual session over KWin's EIS RemoteDesktop (libei).";
 
   inputs = {
+    flake-lib.url = "github:jgus-org/flake-lib/v1";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-    flake-lib = {
-      url = "github:jgus-org/flake-lib/v1";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    treefmt-nix = {
-      url = "github:numtide/treefmt-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
     {
       self,
-      nixpkgs,
       flake-lib,
-      treefmt-nix,
+      nixpkgs,
     }:
     flake-lib.lib.eachDefaultLinuxSystem (
       system:
       let
         pkgs = import nixpkgs { inherit system; };
 
-        treefmtEval = treefmt-nix.lib.evalModule pkgs {
-          projectRootFile = "flake.nix";
-          programs.nixfmt.enable = true;
-          programs.clang-format.enable = true;
+        orgFormatting = flake-lib.lib.mkFormatting {
+          inherit self system;
         };
 
         kwin-input-bridge = pkgs.stdenv.mkDerivation {
-          pname = "kwin-input-bridge";
-          version = "0.1";
-          src = ./.;
-
-          nativeBuildInputs = [ pkgs.pkg-config ];
           buildInputs = [
             pkgs.systemd
             pkgs.libei
           ];
-          checkInputs = [ pkgs.gtest ];
-
           buildPhase = ''
             runHook preBuild
             ''${CXX} -O3 -Wall -Wextra -pipe -std=c++23 -o kwin-input-bridge main.cpp kwin-input-bridge.cpp \
@@ -52,35 +35,36 @@
               $(pkg-config --cflags --libs libsystemd libei-1.0 libeis-1.0 gtest gmock gmock_main)
             runHook postBuild
           '';
-
-          doCheck = true;
+          checkInputs = [ pkgs.gtest ];
           checkPhase = ''
             runHook preCheck
             ./bridge_test
             runHook postCheck
           '';
-
+          doCheck = true;
           installPhase = ''
             runHook preInstall
             install -Dm755 kwin-input-bridge "$out/bin/kwin-input-bridge"
             runHook postInstall
           '';
-
           meta = {
             description = "Forward Sunshine's uinput devices into a headless kwin_wayland --virtual session over KWin's EIS RemoteDesktop";
             mainProgram = "kwin-input-bridge";
             platforms = flake-lib.lib.defaultLinuxSystems;
           };
+          nativeBuildInputs = [ pkgs.pkg-config ];
+          pname = "kwin-input-bridge";
+          src = ./.;
+          version = "0.1";
         };
       in
       {
+        checks.formatting = orgFormatting.check;
+        formatter = orgFormatting.formatter;
         packages = {
           inherit kwin-input-bridge;
           default = kwin-input-bridge;
         };
-
-        formatter = treefmtEval.config.build.wrapper;
-        checks.formatting = treefmtEval.config.build.check self;
       }
     );
 }
