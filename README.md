@@ -70,3 +70,5 @@ Reading `/dev/input/event*` needs access to the device nodes, normally the `inpu
 - Scrolling comes from the high-resolution wheel events (`REL_WHEEL_HI_RES`, `REL_HWHEEL_HI_RES`) only. A device emitting only detent `REL_WHEEL` events scrolls nothing.
 - KWin exposes relative and absolute pointer as separate EIS devices, and relative motion sent to the absolute device is dropped. Absolute positions are scaled from the source device's reported range, so a device reporting a zero absolute range — Sunshine's absolute mouse unless it is configured with a real range — forwards no absolute motion.
 - Startup attempts `mlockall` and `setpriority(-5)` to harden against jitter. Both are best effort: failure is logged and the bridge continues unprivileged.
+
+See [LICENSE.md](LICENSE.md) for licensing and copyright.
