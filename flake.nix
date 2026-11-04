@@ -2,8 +2,11 @@
   description = "Forward Sunshine's uinput devices into a headless kwin_wayland --virtual session over KWin's EIS RemoteDesktop (libei).";
 
   inputs = {
-    flake-lib.url = "github:jgus-org/flake-lib/v1";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    flake-lib = {
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:jgus-org/flake-lib/v1";
+    };
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs =
